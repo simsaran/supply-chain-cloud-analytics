@@ -1,21 +1,31 @@
-WITH customer_stats AS (
-  SELECT
-    customer_id,
-    COUNT(*) AS order_count,
-    ROUND(SUM(sales), 2) AS total_spend,
-    ROUND(AVG(order_profit_per_order), 2) AS avg_profit
-  FROM sc_warehouse.fact_orders
-  GROUP BY customer_id
-)
+-- ============================================
+-- 03_cumulative_revenue.sql
+-- Cumulative Revenue Over Time
+-- Skills: Window Function (SUM OVER), GROUP BY
+-- ============================================
+-- Purpose: Calculates a running total of revenue over time,
+-- showing how revenue accumulates day by day. Window functions
+-- are an advanced SQL skill that Amazon BI roles specifically
+-- look for. This query also calculates a 7-day moving average
+-- to smooth out daily fluctuations.
+-- ============================================
+ 
 SELECT
-  CASE
-    WHEN total_spend > 5000 THEN 'High Value'
-    WHEN total_spend > 1000 THEN 'Medium Value'
-    ELSE 'Low Value'
-  END AS customer_segment,
-  COUNT(*) AS num_customers,
-  ROUND(AVG(total_spend), 2) AS avg_spend,
-  ROUND(AVG(order_count), 1) AS avg_orders
-FROM customer_stats
-GROUP BY customer_segment
-ORDER BY avg_spend DESC;
+  order_date,
+  SUM(sales) AS daily_revenue,
+  COUNT(*) AS daily_orders,
+  SUM(SUM(sales)) OVER (
+    ORDER BY order_date
+  ) AS cumulative_revenue,
+  ROUND(
+    AVG(SUM(sales)) OVER (
+      ORDER BY order_date
+      ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+    ), 2
+  ) AS moving_avg_7day,
+  SUM(COUNT(*)) OVER (
+    ORDER BY order_date
+  ) AS cumulative_orders
+FROM sc_warehouse.fact_orders
+GROUP BY order_date
+ORDER BY order_date;
