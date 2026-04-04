@@ -1,4 +1,3 @@
-# supply-chain-cloud-analytics
 # Supply Chain Cloud Analytics Pipeline
 
 End-to-end BI pipeline analyzing **180K+ supply chain orders** to identify root causes of late deliveries across global markets. Built entirely using cloud-based tools — Python ETL, BigQuery data warehouse, SQL analysis, and Tableau dashboard.
